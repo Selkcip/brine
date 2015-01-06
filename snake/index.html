@@ -1,0 +1,45 @@
+<html>
+	<head>
+		<title>Brine Starter Kit</title>
+		
+		<!--[Include Engine Source Files Here]-->
+		<script src="brine.js"></script>
+		
+		<!--[Include Your Source Files Here]-->
+		<script src="Grid.js"></script>
+		<script src="Food.js"></script>
+		<script src="Snake.js"></script>
+		
+		<script>
+			use2D = true;
+			
+			var grid = new Grid(32, 24, 25);
+			world.addChild(grid);
+			
+			var snake = new Snake(grid);
+			world.addChild(snake);
+			
+			var food = new Food(grid);
+			world.addChild(food);
+			
+			world.init = function(){
+			}
+			
+			world.update = function(d){
+				this.updateChildren(d);
+			}
+		</script>
+	</head>
+	<body onload="initGame('canvas');" height="600" bgcolor="black" style="margin:0px; margin-top: 50px; padding:0px; color: white;">
+		<center>
+		<canvas id="canvas" width="800" height="600" style="border: solid black; margin:0px; padding: 0px; color: white;">
+			<span style="font: white;">Your browser doesn't support HTML 5 Canvas.<br />
+			You should probably switch to something a little more forward thinking.</span>
+		</canvas>
+		<br />
+		Not working? Try <a style="color:#ff0000; text-decoration:none;" href="" onclick="switchContext();" >this</a>.
+		</center>
+		<!--Add this console div somewhere if you want to see print and println output-->
+		<div id="console"></div>
+	</body>
+</html>

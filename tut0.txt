@@ -1,0 +1,438 @@
+NOTE: I am posting this the week before the quarter starts, but you are not required to go through it yet. I am posting it now so that it is available when people need it.
+
+This is a quick guide to setting up your first Brine project and adding a moving sprite. The completed project can be found at the bottom of this post.
+
+The first thing you want to do is create a new folder/directory to hold all of your project files, name it brinegame. Inside that folder create another named images and an HTML document named index.html.
+
+Open up index.html in your preferred text editor (Aptana Studio 3 standalone is recommended http://www.aptana.com/products/studio3/download) and make it a blank page:
+
+<html>
+    <head>
+        <title>Brine Game</title>
+    </head>
+    <body>
+    </body>
+</html>
+
+Create a new Canvas object between the body tags. Make sure to set its id to "canvas" as this is how you will tell Brine where to draw stuff. Give it a width and height and style the border so that you can see its boundaries:
+
+<html>
+    <head>
+        <title>Brine Game</title>
+    </head>
+    <body>
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+Load the page up in your favorite browser (so long as it isn't Internet Explorer). You should see this:
+
+If you see "You shouldn't see this." instead then you may be using a browser that doesn't support the HTML 5 canvas object (Internet Explorer). If that is the case please download Chrome (www.google.com/chrome) or Firefox (http://www.mozilla.org/en-US/firefox/new/). Both work, although Chrome's Javascript engine is generally faster that Firefox's.
+
+That's great, but it doesn't do anything at all. Let's add some Brine.
+
+Inside the header tags under the title add a script object and set its source to Brine.js. There are a number of sources that you can use for this script, but I'm going to assume that you've downloaded Brine.js (http://www.jar42.com/brine/engine/Brine.js) and placed it in the same folder as index.html:
+
+<html>
+    <head>
+        <title>Brine Game</title>
+        
+        <script src="Brine.js"></script>
+    </head>
+    <body>
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+Now you need to tell the page that when it's finished loading it should initialize Brine by adding onload="initGame('canvas');" to the body tag:
+
+<html>
+    <head>
+        <title>Brine Game</title>
+        
+        <script src="Brine.js"></script>
+    </head>
+    <body onload="initGame('canvas');">
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+
+If you load up your project now Brine will be running, but you haven't added any content so it won't look any different from the static canvas.
+
+Add another set of script tags in the header under the Brine script, but this time don't give it a source. This is where your game code goes:
+
+<html>
+    <head>
+        <title>Brine Game</title>
+        
+        <script src="Brine.js"></script>
+        <script>
+            //Game code here
+        </script>
+    </head>
+    <body onload="initGame('canvas');">
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+Before you do anything else, you'll need to tell Brine to use its 2D drawing. Brine also has OpenGL powered drawing which allows some more advanced features and effects. However, due to browser security sandbox issues we want to use the 2D method to make things easier. Add the line use2D = true; at the top of the new script tag:
+
+<html>
+    <head>
+        <title>Brine Game</title>
+        
+        <script src="Brine.js"></script>
+        <script>
+            use2D = true;
+        </script>
+    </head>
+    <body onload="initGame('canvas');">
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+At this point you'll want to find an image to use as a sprite and place it in the images folder. It doesn't matter what the image is of so long as it's a .jpg, .png, or .gif. PNGs are the best as they don't have the compression artifacts of JPEGs and GIFs and they support transparency.
+
+For this example I'm just using the Brine logo:
+
+To get this image displayed inside your canvas you need to create a Sprite object. Sprites are general purpose image-based objects that can be extended to act as any part of your game.
+
+Inside the game code script assign a new Sprite to a variable named mySprite:
+
+<html>
+    <head>
+        <title>Brine Game</title>
+        
+        <script src="Brine.js"></script>
+        <script>
+            use2D = true;
+
+            //Create a new Sprite
+            var mySprite = new Sprite();
+        </script>
+    </head>
+    <body onload="initGame('canvas');">
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+Set the dimensions of your new sprite:
+
+<html>
+    <head>
+        <title>Brine Game</title>
+        
+        <script src="Brine.js"></script>
+        <script>
+            use2D = true;
+
+            //Create a new Sprite
+            var mySprite = new Sprite();
+            
+            //Set its dimensions
+            mySprite.width = 256;
+            mySprite.height = 256;
+        </script>
+    </head>
+    <body onload="initGame('canvas');">
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+
+Set your sprite's image by loading it with the Textures object.
+
+<html>
+    <head>
+        <title>Brine Game</title>
+        
+        <script src="Brine.js"></script>
+        <script>
+            use2D = true;
+
+            //Create a new Sprite
+            var mySprite = new Sprite();
+            
+            //Set its dimensions
+            mySprite.width = 256;
+            mySprite.height = 256;
+            
+            //Set the sprite's texture
+            mySprite.image = Textures.load("images/logo.png");
+        </script>
+    </head>
+    <body onload="initGame('canvas');">
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+Textures is a global object that manages image loading and reuse. Whenever you want to set a sprite's image use Texture.load("image source"). If the image isn't loaded Textures will load it and if it already is Textures will return a reference to that copy so that you aren't creating multiple copies of the same image.
+
+The final step in getting your sprite to show up is to add it to the world. world itself is actually a sprite meant to act as an anchor for all other sprites to be attached to by calling world.addChild(sprite):
+
+<html>
+    <head>
+        <title>Brine Game</title>
+        
+        <script src="Brine.js"></script>
+        <script>
+            use2D = true;
+
+            //Create a new Sprite
+            var mySprite = new Sprite();
+            
+            //Set its dimensions
+            mySprite.width = 256;
+            mySprite.height = 256;
+            
+            //Set the sprite's texture
+            mySprite.image = Textures.load("images/logo.png");
+            
+            //Add the sprite to the world
+            world.addChild(mySprite);
+        </script>
+    </head>
+    <body onload="initGame('canvas');">
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+
+Now if you load up your project you should finally see something:
+
+If you don't see your image displayed open your browser's javascript console and see if there are any errors (Firefox Ctrl+Shift+K, Chrome Ctrl+Shift+J Note that these are for Windows, I'm not sure about OSX or Linux)
+
+You can ignore these errors:
+
+
+Assuming you didn't run into any errors you'll see your sprite, but it doesn't do anything so it might as well just be a static HTML page. To make it a little more interesting add an update function to your sprite. Update functions are called every time the game updates, at least once per frame. They allow your sprites to autonomously control themselves so that you don't end up with one giant function containing all of your game logic.
+
+<html>
+    <head>
+        <title>Brine Game</title>
+        
+        <script src="Brine.js"></script>
+        <script>
+            use2D = true;
+            
+            //Create a new Sprite
+            var mySprite = new Sprite();
+            
+            //Set its dimensions
+            mySprite.width = 256;
+            mySprite.height = 256;
+            
+            //Set the sprite's texture
+            mySprite.image = Textures.load("images/logo.png");
+            
+            //Add the sprite to the world
+            world.addChild(mySprite);
+            
+            //Override the default update function
+            mySprite.update = function(d){
+                
+            }
+        </script>
+    </head>
+    <body onload="initGame('canvas');">
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+
+The d in function(d) is the time since the last update, but you can ignore that for now.
+
+To make your sprite move across the screen add this.x += 1; to its update function (if you don't know, this is a reference to the object whose function you are currently in):
+
+mySprite.update = function(d){
+    this.x += 1;
+}
+
+Now your sprite will slowly make its way across the canvas and then disappear never to return. If you don't want that you can make it bounce around the canvas instead:
+
+//Override the default update function
+//Define some variables to hold the sprite's x and y velocities
+var xvel = 1;
+var yvel = 1;
+mySprite.update = function(d){
+    //Add the velocities to the sprite's position
+    this.x += xvel;
+    this.y += yvel;
+    
+    //If the sprite hits a boundary make it change direction
+    //If it hits the left edge
+    if(this.x < 0){
+        //Reverse the x velocity
+        xvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.x = 0;
+
+    //If it hits the right edge
+    }else if(this.x > canvas.width-this.width){
+        //Reverse the x velocity
+        xvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.x = canvas.width-this.width;
+    }
+    
+    //If it hits the top edge (the top left corner of the canvas is 0,0)
+    if(this.y < 0){
+        //Reverse the x velocity
+        yvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.y = 0;
+
+    //If it hits the bottom edge
+    }if(this.y > canvas.height-this.height){
+        //Reverse the x velocity
+        yvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.y = canvas.height-this.height;
+    }
+}
+
+This might look a bit complicated, but all it's doing is making the sprite change directions when it hits one of the canvas edges. Your sprite should now be bouncing around within the canvas.
+
+To make it a little more animated we'll add some rotation as well:
+
+mySprite.update = function(d){
+    //Add the velocities to the sprite's position
+    this.x += xvel;
+    this.y += yvel;
+    
+    //If the sprite hits a boundary make it change direction
+    //If it hits the left edge
+    if(this.x < 0){
+        //Reverse the x velocity
+        xvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.x = 0;
+
+    //If it hits the right edge
+    }else if(this.x > canvas.width-this.width){
+        //Reverse the x velocity
+        xvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.x = canvas.width-this.width;
+    }
+    
+    //If it hits the top edge (the top left corner of the canvas is 0,0)
+    if(this.y < 0){
+        //Reverse the x velocity
+        yvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.y = 0;
+
+    //If it hits the bottom edge
+    }if(this.y > canvas.height-this.height){
+        //Reverse the x velocity
+        yvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.y = canvas.height-this.height;
+    }
+    
+    //Rotate the sprite by 5 degrees. DTR(degrees) converts degrees to radians
+    this.rotation += DTR(5);
+}
+
+Note that the rotation of a sprite is in radians so we use the helper function DTR() to convert degrees to radians before adding it to the sprite's rotation.
+
+If you run your game now you'll find that you've completely broken it and the sprite is spinning out of control and isn't doing what you expected. This is because by default the origin of a sprite is at its top left corner and this is a the point that it rotates around. To fix this we'll have to make a few adjustments. The most important of which is to shift the origin using xoffset and yoffset:
+
+//Create a new Sprite
+var mySprite = new Sprite();
+
+//Set its dimensions
+mySprite.width = 256;
+mySprite.height = 256;
+
+//Shift the sprite so that its origin is at its center
+//The offset is negative because we are moving the sprite relative to its origin and not the origin relative to the sprite
+mySprite.xoffset = -mySprite.width/2;
+mySprite.yoffset = -mySprite.height/2;
+
+This also changes where the sprite's right edge is. To simplify it just make it so that it bounces when the center of the sprite hits one of the canvas' edges:
+
+mySprite.update = function(d){
+    //Add the velocities to the sprite's position
+    this.x += xvel;
+    this.y += yvel;
+    
+    //If the sprite hits a boundary make it change direction
+    //If it hits the left edge
+    if(this.x < 0){
+        //Reverse the x velocity
+        xvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.x = 0;
+
+    //If it hits the right edge
+    }else if(this.x > canvas.width){
+        //Reverse the x velocity
+        xvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.x = canvas.width;
+    }
+    
+    //If it hits the top edge (the top left corner of the canvas is 0,0)
+    if(this.y < 0){
+        //Reverse the x velocity
+        yvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.y = 0;
+
+    //If it hits the bottom edge
+    }if(this.y > canvas.height){
+        //Reverse the x velocity
+        yvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.y = canvas.height;
+    }
+    
+    //Rotate the sprite by 5 degrees. DTR(degrees) converts degrees to radians
+    this.rotation += DTR(5);
+}
+
+Your project should now look like this, except that it should be moving:
+
+Here is a moving version: http://www.jar42.com/brine/example/
+
+You should now have a basic understanding of how to make sprites and make them move. However, that isn't enough so the next tutorial will cover controlling sprites with mouse and keyboard input.
+
+The completed project can be downloaded here: http://www.jar42.com/brine/example/example.zip
+
+#brine #tutorial #introduction #example
+

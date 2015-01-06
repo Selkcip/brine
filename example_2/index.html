@@ -1,0 +1,99 @@
+<html>
+	<head>
+		<title>Brine Game</title>
+		
+		<script src="brine.js"></script>
+		<script>
+			use2D = true;
+			
+			//Create a new Sprite
+			var mySprite = new Sprite();
+			
+			//Set its dimensions
+			mySprite.width = 256;
+			mySprite.height = 256;
+			
+			//Shift the sprite so that its origin is at its center
+			//The offset is negative because we are moving the sprite relative to its origin and not the origin relative to the sprite
+			mySprite.offsetX = -mySprite.width/2;
+			mySprite.offsetY = -mySprite.height/2;
+			
+			//Set the sprite's texture
+			mySprite.image = Textures.load("images/logo.png");
+			
+			//Add the sprite to the world
+			world.addChild(mySprite);
+			
+			//A
+			gInput.addBool(65, "left");
+			//D
+			gInput.addBool(68, "right");
+			//S
+			gInput.addBool(83, "down");
+			//W
+			gInput.addBool(87, "up");
+			
+			//Override the default update function
+			//Define some variables to hold the sprite's x and y velocities
+			var xvel = 1;
+			var yvel = 1;
+			mySprite.update = function(d){
+				//Define a speed to move at
+				var speed = 2;
+				
+				//If the A key is pressed move to the left
+				if(gInput.left){
+					this.x -= speed;
+				}
+				
+				//If the D key is pressed move to the right
+				if(gInput.right){
+					this.x += speed;
+				}
+				
+				//If the S key is pressed move down
+				if(gInput.down){
+					//Note that an increasing y means moving down the screen
+					this.y += speed;
+				}
+				
+				//If the W key is pressed move up
+				if(gInput.up){
+					this.y -= speed;
+				}
+				
+				//Make the sprite warp to the opposite side of the canvas when it goes off a side
+				//If it goes off the left or right edge
+				if(this.x < 0){
+					this.x = canvas.width; //Place it on the right side
+				}else if(this.x > canvas.width){
+					this.x = 0; //Place it on the left side
+				}
+				
+				//If it goes off the top or bottom edge
+				if(this.y < 0){
+					this.y = canvas.height; //Place it at the bottom
+				}if(this.y > canvas.height){
+					this.y = 0; //Place it at the top
+				}
+				
+				//Find the horizontal distance between the sprite and the mouse
+				var xDis = gInput.mouse.x-this.x;
+				
+				//Find the vertical distance between the sprite and the mouse
+				var yDis = gInput.mouse.y-this.y;
+				
+				//Use those distances and the arctangent to calculate the angle from the sprite to the mouse
+				var angle = Math.atan2(yDis, xDis);
+				
+				//Set the sprite's rotation to the calculated angle
+				this.rotation = angle;
+			}
+		</script>
+	</head>
+	<body onload="initGame('canvas');">
+		<canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+			You shouldn't see this.
+		</canvas>
+	</body>
+</html>

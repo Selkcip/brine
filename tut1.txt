@@ -1,0 +1,119 @@
+This tutorial is going to build off of the example from Getting Started With Brine, so if you haven't done that yet come back when you have.
+
+Handling input with Brine is relatively easy as it does most of the work for you. There is a global input object called gInput and this is where you will get all of your input information from.
+Let's start with moving your sprite around with they keys A, W, S, and D. The easiest way to monitor key presses with Brine is to add a boolean (true/false) to gInput:
+
+gInput.addBool(asciiCode, boolName);
+
+This adds a new bool named boolName that is set to true when the key represented by asciiCode is pressed. asciiCode is the ascii value for the uppercase character on the key. Here is a list of all the ascii values: http://www.asciitable.com/. To check the value of a bool look at gInput.boolName.
+
+//87 is the ascii value of W
+gInput.addBool(87, "up");
+if(gInput.up){
+ println("You're moving up in the world.");
+}
+
+Open up your project from the first tutorial and add the following lines after ?world.addChild(mySprite);
+
+//A
+gInput.addBool(65, "left");
+//D
+gInput.addBool(68, "right");
+//S
+gInput.addBool(83, "down");
+//W
+gInput.addBool(87, "up");
+
+Now you can check to see if those keys are pressed. Let's get rid of the bouncing motion and replace it with a controllable motion that loops around the screen like in Asteroids.
+
+First delete everything inside mySprite's update function:
+
+mySprite.update = function(d){
+}
+
+To make the sprite move when you press the keys specified above add the following:
+
+mySprite.update = function(d){
+    //Define a speed to move at
+    var speed = 2;
+    
+    //If the A key is pressed move to the left
+    if(gInput.left){
+        this.x -= speed;
+    }
+    
+    //If the D key is pressed move to the right
+    if(gInput.right){
+        this.x += speed;
+    }
+    
+    //If the S key is pressed move down
+    if(gInput.down){
+        //Note that an increasing y means moving down the screen
+        this.y += speed;
+    }
+    
+    //If the W key is pressed move up
+    if(gInput.up){
+        this.y -= speed;
+    }
+}
+
+Now when you press those keys, your sprite will move around the canvas (make sure to click on the canvas to give it focus).
+
+Now again when the sprite moves off screen it disappears. Instead you want it to warp to the other side. At the end of the update function add:
+
+//Make the sprite warp to the opposite side of the canvas when it goes off a side
+//If it goes off the left or right edge
+if(this.x < 0){
+    this.x = canvas.width; //Place it on the right side
+}else if(this.x > canvas.width){
+    this.x = 0; //Place it on the left side
+}
+
+//If it goes off the top or bottom edge
+if(this.y < 0){
+    this.y = canvas.height; //Place it at the bottom
+}if(this.y > canvas.height){
+    this.y = 0; //Place it at the top
+}
+
+That's basically it. It's also possible to tell objects to listen for keyboard input if you want to do more complex handling, but you can probably get by using only input bools.
+
+The second type of input is mouse button input. Mouse input is even easier than keyboard input because there are only so many buttons on a mouse (unless you have one of those ridiculous MMO mice). Brine assumes that you have three mouse buttons: left, middle, and right. You check to see if they are pressed in the same way as key bools:
+
+if(gInput.lBtn){
+    println("Left button pressed");
+}
+
+if(gInput.mBtn){
+    println("Middle button pressed");
+}
+
+if(gInput.rBtn){
+    println("Right button pressed");
+}
+
+Again it's possible to make objects listen for mouse input (useful for clicking on things), but that is beyond the scope of this tutorial.
+
+The final type of input is mouse movement/current position. The mouse position relative to the upper left corner of the canvas is stored in gInput.mouse.x and gInput.mouse.y?. Using these coordinates we can make the sprite point at the mouse:
+
+//Find the horizontal distance between the sprite and the mouse
+var xDis = gInput.mouse.x-this.x;
+
+//Find the vertical distance between the sprite and the mouse
+var yDis = gInput.mouse.y-this.y;
+
+//Use those distances and the arctangent to calculate the angle from the sprite to the mouse
+var angle = Math.atan2(yDis, xDis);
+
+//Set the sprite's rotation to the calculated angle
+this.rotation = angle;
+
+We use arctangent to calculate the angle from the sprite to the mouse. Remember that you can use atan2(y,x) to find the angle between two objects as it will be very? useful and will come up a lot in games and graphics. It might even be a good idea to start making a document or notebook of useful game programming tricks.
+
+Now you have the perfect setup for a SHMUP, but we're not going to go that far in this tutorial.
+
+Here's the result: http://www.jar42.com/brine/example_2/
+
+And the example can be downloaded from here: http://www.jar42.com/brine/example_2/example_2.zip

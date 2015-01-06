@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Brine Starter Kit</title>
+		
+		<script type="text/javascript" src="../engine/gl-matrix.js"></script>
+		
+		<!--[Include Engine Source Files Here]-->
+		<!--<script src="../engine/List.js"></script>
+		<script src="../engine/Vector.js"></script>
+		<script src="../engine/Resources.js"></script>
+		<script src="../engine/WebGL.js"></script>
+		<script src="../engine/PostFX.js"></script>
+		<script src="../engine/postfx/Effect.js"></script>
+		<script src="../engine/postfx/Blur.js"></script>
+		<script src="../engine/postfx/Bloom.js"></script>
+		<script src="../engine/postfx/Chromatic.js"></script>
+		<script src="../engine/Sprite.js"></script>
+		<script src="../engine/BBox.js"></script>
+		<script src="../engine/CollisionGrid.js"></script>
+		<script src="../engine/Input.js"></script>
+		<script src="../engine/GUI.js"></script>
+		<script src="../engine/Widget.js"></script>
+		<script src="../engine/Core.js"></script>-->
+		<script src="../engine/brine.js"></script>
+		<script src="../engine/postfx/Chromatic.js"></script>
+		<!--<script src="../engine/States.js"></script>--><!--[Uncomment this if you want to use the statemanager]-->
+		
+		<!--[Include Your Source Files Here]-->
+		<!--<script src="SomeSource.js"></script>-->
+		<!--<script src="AnotherSource.js"></script>-->
+		
+		<script language="javascript">
+			//Sets the canvas color when clearing, set the last value to 0 if want a transparent canvas
+			clearColor = [1,1,1,1];
+			
+			use2D = true;
+			
+			var wall = {};
+			wall.p0 = new Vector(400,200);
+			wall.p1 = new Vector(400,400);
+			
+			gInput.addBool(38, "e_up");
+			gInput.addBool(40, "e_down");
+			gInput.addBool(37, "e_left");
+			gInput.addBool(39, "e_right");
+			
+			gInput.addBool(87, "p_up");
+			gInput.addBool(83, "p_down");
+			gInput.addBool(65, "p_left");
+			gInput.addBool(68, "p_right");
+			
+			var player = new Sprite();
+			player.x = 100;
+			player.y = 100;
+			player.width = 17;
+			player.height = 36;
+			player.xoffset = -player.width/2;
+			player.yoffset = -player.height/2;
+			player.image = Textures.load("images/bigme.png");
+			world.addChild(player);
+			player.speed = 1;
+			player.update = function(d){
+				if(gInput.p_up){
+					this.y -= this.speed;
+				}
+				if(gInput.p_down){
+					this.y += this.speed;
+				}
+				if(gInput.p_left){
+					this.x -= this.speed;
+				}
+				if(gInput.p_right){
+					this.x += this.speed;
+				}
+			}
+			
+			var bear = new Sprite();
+			bear.x = 400;
+			bear.y = 400;
+			bear.width = 25;
+			bear.height = 38;
+			bear.xoffset = -bear.width/2;
+			bear.yoffset = -bear.height/2;
+			bear.image = Textures.load("images/bear.png");
+			world.addChild(bear);
+			bear.angry = true;
+			bear.speed = 1;
+			bear.update = function(d){
+				if(gInput.e_up){
+					this.y -= this.speed;
+				}
+				if(gInput.e_down){
+					this.y += this.speed;
+				}
+				if(gInput.e_left){
+					this.x -= this.speed;
+				}
+				if(gInput.e_right){
+					this.x += this.speed;
+				}
+				
+				var collision = intersect(player.pos,bear.pos,wall.p0,wall.p1);
+				
+				this.angry = true;
+				if(collision.occurred){
+					this.angry = false;
+				}
+			}
+			
+			function intersect(l0p0, l0p1, l1p0,l1p1){
+				var coll = new Object();
+				coll.occurred = false;
+				coll.point = new Vector(0,0);
+				
+				var qp = l1p0.sub(l0p0);
+				var r = l0p1.sub(l0p0);
+				var s = l1p1.sub(l1p0);
+				var rXs = r.cross(s);
+				var qpXr = qp.cross(r);
+				var qpXs = qp.cross(s);
+				
+				if(qpXr.length == 0 && qpXs.length == 0){ //colinear
+					var min0 = Math.min(l0p0.x, l0p1.x);
+					var max0 = Math.min(l0p0.x, l0p1.x);
+					var min1 = Math.min(l1p0.x, l1p1.x);
+					var max1 = Math.min(l1p0.x, l1p1.x);
+					
+					coll.occurred = (min0 <= max1) && (min1 <= max0);
+					coll.point = l0p0.add(l0p1).add(l1p0).add(l1p1).div(4);
+				}else if(rXs.length == 0){ //parallel
+					coll.occurred = false;
+				}else{
+					var t = qpXs.div(rXs.z).z;
+					var u = qpXr.div(rXs.z).z;
+					
+					coll.occurred = (t >= 0 && t <= 1 && u >= 0 && u <= 1);
+					coll.point = l0p0.add(r.mult(t));
+				}
+				return coll;
+			}
+			
+			world.draw = function(ctx){
+				this.drawChildren(ctx);
+				
+				ctx.strokeStyle = "green";
+				if(bear.angry){
+					ctx.strokeStyle = "red";
+				}
+				ctx.beginPath();
+				ctx.moveTo(player.x,player.y);
+				ctx.lineTo(bear.x,bear.y);
+				ctx.stroke();
+				
+				ctx.strokeStyle = "black";
+				ctx.beginPath();
+				ctx.moveTo(wall.p0.x,wall.p0.y);
+				ctx.lineTo(wall.p1.x,wall.p1.y);
+				ctx.stroke();
+			}
+			
+			world.update = function(d){
+				//Do something with those booleans
+			
+				//This is the equivalent of calling super.update() in other languages
+				this.updateChildren(d);
+			}
+			
+			
+		</script>
+	</head>
+	<body onload="initGame('canvas');" height="600" bgcolor="black" style="margin:0px; margin-top: 50px; padding:0px; color: white;">
+		<center>
+		<canvas id="canvas" width="800" height="600" style="border: solid black; margin:0px; padding: 0px; color: white;">
+			<span style="font: white;">Your browser doesn't support HTML 5 Canvas.<br />
+			You should probably switch to something a little more forward thinking.</span>
+		</canvas>
+		<br />
+		Not working? Try <a style="color:#ff0000; text-decoration:none;" href="" onclick="switchContext();" >this</a>.
+		</center>
+		<!--Add this console div somewhere if you want to see print and println output-->
+		<div id="console"></div>
+	</body>
+</html>

@@ -1,0 +1,67 @@
+To make Brine go:
+	1) Creat a new html document, doesn't matter what it's called so long as it has a <head> and <body>
+	1) Include all of the necessary engine files (and maybe some optional ones)
+	2) Add a canvas object to the body and give it and id
+	3) In the body tag add onload="initGame('[YOUR CANVAS ID HERE]');"
+	4) Add sprites, sounds, etc.
+
+Some basics:
+	To make a sprite: 
+		var newSprite = new Sprite();
+		newSprite.image = Texture.load(URL_to_image);
+		
+	Sprite properties/functions:
+		width, height
+		x, y
+		xoffset, yoffset - Drawing offset
+		xscroll, yscroll
+		xtile, ytile
+		frameHeight, frameWidth
+		frameCount
+		children - List
+		addChild(Sprite), removeChild(Sprite)
+		draw(Canvas Context)
+		update(delta)
+		getXScale(), getYScale() - Take into account parent scaling
+		remove() - Empties the child list and remove it from its parent's child list, will not be garbage collected unless there are no other references to it
+		
+	
+	To see if everything is loaded:
+		Resources.leftToLoad == 0;
+	To see how many items were loaded:
+		Resources.totalItems
+		
+	There is a global Input object called gInput. If you are using the StateManager each state has its own input to prevent inputs being caught at the wrong time as well as allow for different key bindings per state.
+		These are the important input functions:
+			//Adds a key-bool set. When the given key is pressed the bool is set to true and set to false when it is released
+			Input.prototype.addBool = function(keyCode, boolName)
+
+			//Adds a function to be called when the given key is pressed. Repeats until released is repeat is true
+			Input.prototype.addFunc = function(keyCode, func, repeat)
+
+			//Adds a function to be called when the left mouse button is pressed
+			Input.prototype.addLBtnFunc = function(func)
+
+			//Adds a function to be called when the middle mouse button is pressed
+			Input.prototype.addMBtnFunc = function(func)
+
+			//Adds a function to be called when the right mouse button is pressed
+			Input.prototype.addRBtnFunc = function(func)
+
+			//Adds an object to be notified when a mouse button is pressed. The object must have the function onMouseDown(buttonNumber)
+			Input.prototype.addMouseDownListener = function(obj)
+
+			//Adds an object to be notified when a mouse button is released
+			Input.prototype.addMouseUpListener = function(obj)
+
+			//Adds an object to be notified when the mouse is moved. The object must have the function onMouseMove()
+			Input.prototype.addMouseMoveListener = function(obj)
+
+			//Adds an object to be notified when a key is pressed. The object must have the function onKeyDown(key)
+			Input.prototype.addKeyboardListener = function(obj)
+	
+	To access a set input boolean:
+		if(gInput.[boolean name]) - They are treated like object properties
+		
+	Input also has a mouse property:
+		mouse.x, mouse.y

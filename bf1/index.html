@@ -1,0 +1,596 @@
+<html>
+	<head>
+		<title>Bear Force One</title>
+		<link href='http://fonts.googleapis.com/css?family=Butcherman|Nosifer|Plaster|Black+Ops+One|Wallpoet|Bangers|Jolly+Lodger' rel='stylesheet' type='text/css'>
+		<style>
+		body {
+			font-family: Arial, 'Butcherman', 'Nosifer', 'Plaster', 'Black Ops One', 'Wallpoet', 'Bangers', 'Jolly Lodger', cursive;
+		}
+		</style>
+		
+		<script type="text/javascript" src="../engine/gl-matrix.js"></script>
+		
+		<script src="../engine/List.js"></script>
+		<script src="../engine/Vector.js"></script>
+		<script src="../engine/Resources.js"></script>
+		<script src="../engine/WebGL.js"></script>
+		<script src="../engine/PostFX.js"></script>
+		<script src="../engine/postfx/Effect.js"></script>
+		<script src="../engine/postfx/Blur.js"></script>
+		<script src="../engine/postfx/Bloom.js"></script>
+		<script src="../engine/postfx/Chromatic.js"></script>
+		<script src="../engine/Sprite.js"></script>
+		<script src="../engine/BBox.js"></script>
+		<script src="../engine/CollisionGrid.js"></script>
+		<script src="../engine/Input.js"></script>
+		<script src="../engine/GUI.js"></script>
+		<script src="../engine/Widget.js"></script>
+		<script src="../engine/Core.js"></script>
+		<!--<script src="../engine/brine.js"></script>-->
+		<!--<script src="http://jar42.com/brine/engine/brine.php"></script>-->
+		<script src="../engine/States.js"></script>
+		<script src="../engine/LoadingScreen.js"></script>
+		<script src="../engine/postfx/Effect.js"></script>
+		<script src="../engine/postfx/Blur.js"></script>
+		<script src="../engine/postfx/Bloom.js"></script>
+		<script src="../engine/postfx/Chromatic.js"></script>
+		
+		<script src="MainMenu.js"></script>
+		<script src="EscapeMenu.js"></script>
+		<script src="DeadMenu.js"></script>
+		<script src="WinMenu.js"></script>
+		<script src="HighScores.js"></script>
+		<script src="Player.js"></script>
+		<script src="Gun.js"></script>
+		<script src="Bear.js"></script>
+		<script language="javascript">
+			//clearColor = "#000000";
+			clearColor = [0,0,0,1];
+			//showConsole = true;
+			use2D = true;
+			
+			Sounds.load("sounds/mutiny.ogg");
+			Sounds.load("sounds/beartality.ogg");
+			
+			Fonts.load("Nosifer");
+			Fonts.load("Butcherman");
+			Fonts.load("Plaster");
+			
+			var colorOffset;
+			var blur;
+			
+			var test;
+			
+			var loading = new LoadingScreen();
+			loading.onLoadComplete = function(){
+				States.remove(loading);
+				States.push(mainMenu);
+				test = Sounds.loop("sounds/mutiny.ogg");
+				test.volume = 0.175;
+				colorOffset = new Chromatic(0.01);;//new Effect(createShaderProgram(getShaderSrc("colorOffset-fs")));
+				mainMenu.effects.push(colorOffset);
+				game.effects.push(colorOffset);
+				escapeMenu.effects.push(colorOffset);
+				
+				blur = new Blur();
+				//mainMenu.effects.push(blur);
+				
+				//bloom = new Bloom(0.25, 0.003, 0.5);
+				//mainMenu.effects.push(bloom);
+			}
+			States.push(loading);
+			
+			var mainMenu = new MainMenu();
+			mainMenu.button.func = function(){
+				States.remove(mainMenu);
+				States.push(game);
+				newGame();
+			}
+			mainMenu.scoreBtn.func = function(){
+				States.remove(mainMenu);
+				States.push(highScores);
+				highScores.loadScores();
+			}
+			
+			/*var key = new Sprite();
+			key.width = 256;
+			key.height = 256;
+			key.offsetX = -key.width/2;
+			key.offsetY = -key.height/2;
+			key.frameWidth = 256;
+			key.frameHeight = 256;
+			key.frameCount = 32;
+			key.x = 200;
+			key.y = 300;
+			key.image = Textures.load("images/keyspin.png");
+			key.alpha = 0.25;
+			//key.blendFunc = BLEND_ADD;
+			//key.blendMode = "destination-atop";
+			//key.blendMode = "lighter";
+			//mainMenu.world.addChild(key);*/
+			
+			var box = new Sprite();
+			box.width = 100;
+			box.height = 100;
+			box.offsetX = -box.width/2;
+			box.offsetY = -box.height/2;
+			box.x = -70;
+			box.y = -71;
+			//box.rotation = Math.PI/4
+			box.image = Textures.load("images/rocket.png");
+			//mainMenu.world.addChild(box);
+			box.update = function(){
+				//this.rotation += 0.01;
+				//println("hello");
+			}
+			
+			//Escape
+			var escapeMenu = new EscapeMenu(States);
+			escapeMenu.resume.func = function(){
+				States.remove(escapeMenu);
+				game.effects.remove(blur);
+			}
+			escapeMenu.input.addFunc(13, escapeMenu.resume.func);
+			escapeMenu.input.addFunc(27, escapeMenu.resume.func);
+			escapeMenu.restart.func = function(){
+				States.remove(escapeMenu);
+				game.effects.remove(blur);
+				States.push(game);
+				newGame();
+			}
+			escapeMenu.main.func = function(){
+				States.remove(escapeMenu);
+				States.remove(game);
+				game.effects.remove(blur);
+				States.push(mainMenu);
+			}
+			
+			//Dead
+			var deadMenu = new DeadMenu();
+			deadMenu.scoreBtn.func = function(){
+				if(deadMenu.nameText.text != "Enter Name"){
+					States.remove(deadMenu);
+					States.remove(game);
+					highScores.submitScore(deadMenu.nameText.text, game.score);
+					States.push(highScores);
+				}
+			}
+			deadMenu.newBtn.func = function(){
+				newGame();
+				States.pop();
+			}
+			deadMenu.main.func = function(){
+				States.remove(deadMenu);
+				States.remove(game);
+				States.push(mainMenu);
+			}
+			
+			//Win
+			var winMenu = new WinMenu();
+			winMenu.scoreBtn.func = function(){
+				if(winMenu.nameText.text != "Enter Name"){
+					States.remove(winMenu);
+					States.remove(game);
+					highScores.submitScore(winMenu.nameText.text, game.score);
+					States.push(highScores);
+				}
+			}
+			winMenu.newBtn.func = function(){
+				States.remove(winMenu);
+				newGame();
+				States.push(game);
+			}
+			winMenu.main.func = function(){
+				States.remove(winMenu);
+				States.remove(game);
+				States.push(mainMenu);
+			}
+			
+			//High Scores
+			var highScores = new HighScores();
+			highScores.main.func = function(){
+				States.remove(highScores);
+				States.push(mainMenu);
+			}
+		
+			//Game
+			var game = new State();
+			game.alwaysDraw = true;
+			game.alwaysUpdate = false;
+			game.cursor = "none";
+			game.score = 0;
+			game.bullets = new List();
+			game.time = 0;
+			game.waveTime = 1000;
+			//game.effects.push(colorOffset);
+			
+			game.input.addFunc(13, showEscapeMenu);
+			game.input.addFunc(27, showEscapeMenu);
+			
+			var grass = new Sprite();
+			grass.width = 600;
+			grass.height = 600;
+			grass.tilesX = 4;
+			grass.tilesY = 4;
+			grass.image = Textures.load("images/grass.jpg");
+			grass.index = 1;
+			grass.alpha = 0.5;
+			game.world.addChild(grass);
+			grass.update = function(delta){
+				this.scrollY += 0.5*delta;
+			}
+			
+			function showEscapeMenu(){
+				States.push(escapeMenu);
+				game.effects.push(blur);
+			}
+			
+			var waves = new Array();
+			var waddleSpeed = 0.125;
+			var waddleSize = 15;
+			
+			//Wave 0
+			var wave = new Object();
+			wave.spawnTime = 50;
+			wave.time = wave.spawnTime;
+			wave.update = function(delta){
+				this.time++;
+				if(this.time%this.spawnTime == 0){
+					var bear = newBear(0,-25, 0,
+						function(delta){
+							this.y += this.moveSpeed*delta;
+							this.waddleRot += waddleSpeed*delta;
+							this.rotation = Math.sin(this.waddleRot)*DTR(waddleSize)*delta;
+						});
+					bear.x = bear.width/2+(Math.random()*(canvas.width-bear.width));
+					bear.waddleRot = Math.random()*Math.PI*2;
+				}
+			}
+			waves.push(wave);
+			
+			//Wave 1
+			wave = new Object();
+			wave.spawnTime = 45;
+			wave.time = wave.spawnTime;
+			wave.update = function(delta){
+				this.time++;
+				if(this.time%this.spawnTime == 0){
+					var bear = newBear(0,-25, 0,
+						function(delta){
+							this.y += this.moveSpeed*delta;
+							this.x += Math.sin(this.moveRot)*this.moveSpeed*delta;
+							this.moveRot += 0.1*delta;
+							this.waddleRot += waddleSpeed*delta;
+							this.rotation = Math.sin(this.waddleRot)*DTR(waddleSize);
+						});
+					bear.x = bear.width/2+(Math.random()*(canvas.width-bear.width));
+					bear.moveRot = Math.random()*2*Math.PI;
+					bear.waddleRot = Math.random()*Math.PI*2;
+				}
+			}
+			waves.push(wave);
+			
+			//Wave 2
+			wave = new Object();
+			wave.spawnTime = 40;
+			wave.time = wave.spawnTime;
+			wave.update = function(delta){
+				this.time++;
+				if(this.time%this.spawnTime == 0){
+					var bear = newBear(0,-25, 0,
+						function(delta){
+							this.y += this.moveSpeed*delta;
+							this.x += Math.sin(this.moveRot)*this.moveSpeed*delta;
+							this.moveRot += 0.1*delta;
+							this.waddleRot += waddleSpeed*delta;
+							this.rotation = Math.sin(this.waddleRot)*DTR(waddleSize);
+						});
+					bear.x = bear.width/2+(Math.random()*(canvas.width-bear.width));
+					bear.moveRot = Math.random()*2*Math.PI;
+					bear.waddleRot = Math.random()*Math.PI*2;
+					
+					var bear = newBear(0,-25, 0,
+						function(delta){
+							this.y += this.moveSpeed*delta;
+							this.waddleRot += waddleSpeed*delta;
+							this.rotation = Math.sin(this.waddleRot)*DTR(waddleSize);
+						});
+					bear.x = bear.width/2+(Math.random()*(canvas.width-bear.width));
+					bear.waddleRot = Math.random()*Math.PI*2;
+				}
+			}
+			waves.push(wave);
+			
+			//Wave 3
+			wave = new Object();
+			wave.spawnTime = 35;
+			wave.time = wave.spawnTime;
+			wave.update = function(delta){
+				this.time++;
+				if(this.time%this.spawnTime == 0){
+					var bear = newBear(0,-25, 0,
+						function(delta){
+							this.y += this.moveSpeed*delta;
+							this.x += Math.sin(this.moveRot)*this.moveSpeed*delta;
+							this.moveRot += 0.1*delta;
+							this.waddleRot += waddleSpeed*delta;
+							this.rotation = Math.sin(this.waddleRot)*DTR(waddleSize);
+						});
+					bear.x = bear.width/2+(Math.random()*(canvas.width-bear.width));
+					bear.moveRot = Math.random()*2*Math.PI;
+					bear.waddleRot = Math.random()*Math.PI*2;
+					
+					var bear = newBear(0,-25, 0,
+						function(delta){
+							this.y += this.moveSpeed*delta;
+							this.x += Math.sin(this.moveRot)*this.moveSpeed*delta;
+							this.moveRot += 0.1*delta;
+							this.waddleRot += waddleSpeed*delta;
+							this.rotation = Math.sin(this.waddleRot)*DTR(waddleSize);
+						});
+					bear.x = bear.width/2+(Math.random()*(canvas.width-bear.width));
+					bear.moveRot = Math.random()*2*Math.PI;
+					bear.waddleRot = Math.random()*Math.PI*2;
+				}
+			}
+			waves.push(wave);
+			
+			//Wave 4
+			wave = new Object();
+			wave.spawnTime = 30;
+			wave.time = wave.spawnTime;
+			wave.update = function(delta){
+				this.time++;
+				if(this.time%this.spawnTime == 0){
+					var bear = newBear(0,-25, 0,
+						function(delta){
+							this.y += this.moveSpeed*delta;
+							this.x += Math.sin(this.moveRot)*this.moveSpeed*delta;
+							this.moveRot += 0.1*delta;
+							if(this.gun != null){
+								this.gun.fire();
+							}
+							this.waddleRot += waddleSpeed*delta;
+							this.rotation = Math.sin(this.waddleRot)*DTR(waddleSize);
+						});
+					bear.x = bear.width/2+(Math.random()*(canvas.width-bear.width));
+					bear.moveRot = Math.random()*2*Math.PI;
+					bear.gun.rotation = DTR(90);
+					bear.gun.fireRate = 100;
+					bear.waddleRot = Math.random()*Math.PI*2;
+					
+					var bear = newBear(0,-25, 0,
+						function(delta){
+							this.y += this.moveSpeed*delta;
+							this.x += Math.sin(this.moveRot)*this.moveSpeed*delta;
+							this.moveRot += 0.1*delta;
+							
+							if(this.gun != null){
+								this.gun.fire();
+							}
+							this.waddleRot += waddleSpeed*delta;
+							this.rotation = Math.sin(this.waddleRot)*DTR(waddleSize);
+						});
+					bear.x = bear.width/2+(Math.random()*(canvas.width-bear.width));
+					bear.moveRot = Math.random()*2*Math.PI;
+					bear.gun.rotation = DTR(90);
+					bear.gun.fireRate = 100;
+					bear.waddleRot = Math.random()*Math.PI*2;
+				}
+			}
+			waves.push(wave);
+			
+			//Wave 5
+			wave = new Object();
+			wave.spawnTime = 30;
+			wave.time = wave.spawnTime;
+			var bossHealth = new Sprite();
+			bossHealth.image = Textures.load("images/grenade.png");
+			bossHealth.width = 200;
+			bossHealth.height = 20;
+			bossHealth.offsetX = -bossHealth.width/2;
+			bossHealth.offsetY = -bossHealth.height/2;
+			bossHealth.x = 200;
+			bossHealth.y = 10;
+			bossHealth.alpha = 0.5;
+			var bossHealthBar = new Sprite();
+			bossHealthBar.image = Textures.load("images/rocket.png");
+			bossHealthBar.width = 190;
+			bossHealthBar.height = 10;
+			bossHealthBar.offsetX = 5;//-bossHealthBar.width/2;
+			bossHealthBar.offsetY = 5;//-bossHealthBar.height/2;
+			bossHealth.addChild(bossHealthBar);
+			
+			wave.update = function(delta){
+				if(this.mother == undefined){
+					this.mother = newBear(0,-100, 0,
+						function(delta){
+							if(this.y < 100){
+								this.y += this.moveSpeed*delta;
+								if(this.y >= 100){
+									wave.mother.health = wave.mother.maxHealth;
+									game.gui.addChild(bossHealth);
+								}
+							}else{
+								this.x = 200+Math.sin(this.moveRot)*100*delta;
+								this.moveRot += 0.01*delta;
+								if(this.gun != null){
+									//this.gun.fire();
+								}
+								
+								wave.time++;
+								if(wave.time%wave.spawnTime == 0){
+									var bear = newBear(0,-25, 0,
+										function(delta){
+											this.y += this.moveSpeed*delta;
+											this.x += Math.sin(this.moveRot)*this.moveSpeed*delta;
+											this.moveRot += 0.1*delta;
+											if(this.gun != null){
+												//this.gun.fire();
+											}
+											this.waddleRot += waddleSpeed*delta;
+											this.rotation = Math.sin(this.waddleRot)*DTR(waddleSize);
+										});
+									bear.x = wave.mother.x;
+									bear.y = wave.mother.y+wave.mother.height/2
+									bear.moveRot = Math.random()*2*Math.PI;
+									bear.gun.rotation = DTR(90);
+									bear.gun.fireRate = 50;
+									bear.waddleRot = Math.random()*Math.PI*2;
+								}
+							}
+						});
+					this.mother.image = Textures.load("images/titlebear.png");
+					var scale = 5;
+					this.mother.width = this.mother.width*scale;
+					this.mother.height = this.mother.height*scale;
+					this.mother.offsetX = -this.mother.width/2;
+					this.mother.offsetY = -this.mother.height/2;
+					this.mother.bbox.width = this.mother.width;
+					this.mother.bbox.height = this.mother.height;
+					this.mother.bbox.offsets.x = - this.mother.width/2;
+					this.mother.bbox.offsets.y = -this.mother.height/2;
+					this.mother.x = 200;
+					this.mother.moveSpeed = 1;
+					this.mother.moveRot = 0;
+					this.mother.maxHealth = 5000;
+					this.mother.health = 100000000000000;//this.mother.maxHealth;
+					this.mother.damage = 1000000;
+					this.mother.gun.rotation = DTR(90);
+					this.mother.gun.fireRate = 50;
+					this.mother.scoreValue = 200;
+					this.mother.collide = function(obj){
+						//println("colliding");
+						var norm = player.pos.sub(obj.pos).normalize().mult(5);
+						if(obj instanceof Player){
+							obj.health -= this.damage;
+						}
+					}
+				}else{
+					if(this.mother.health > 0){
+						bossHealthBar.width = 190*(this.mother.health/this.mother.maxHealth);
+					}else{
+						bossHealthBar.width = 0;
+						winMenu.scoreText.text = "final score: "+game.score;
+						States.pop(game);
+						States.push(winMenu);
+					}
+				}
+			}
+			waves.push(wave);
+			
+			function newGame(){
+				game.time = 0;
+				game.score = 0;
+				player.health = player.maxHealth;
+				player.image = Textures.load("images/me.png");
+				player.x = 200;
+				player.y = 560;
+				for(var node = bears.head; node != null; node = node.link){
+					var bear = node.item;
+					bear.kill();
+					bears.remove(bear);
+				}
+				for(var node = game.bullets.head; node != null; node = node.link){
+					var bullet = node.item;
+					bullet.kill();
+					game.bullets.remove(bullet);
+				}
+				waves[5].mother = undefined;
+				game.gui.removeChild(bossHealth);
+				
+				player.x = canvas.width/2;
+			}
+			
+			var scoreText = new TextBox("Score: 0");
+			scoreText.color = "#ffffff";
+			scoreText.font = "Nosifer";
+			scoreText.fontSize = 16;
+			game.gui.addChild(scoreText);
+			Textures.load("images/blood.png");
+			
+			var player = new Player(game);
+			player.x = 200;
+			player.y = 560;
+			player.gun.rotation = DTR(-90);
+			//player.gun.bulletDamage = 3000;
+			
+			var playerHealth = new Sprite();
+			playerHealth.image = Textures.load("images/grenade.png");
+			playerHealth.width = 200;
+			playerHealth.height = 20;
+			playerHealth.offsetX = -playerHealth.width/2;
+			playerHealth.offsetY = -playerHealth.height/2;
+			playerHealth.x = 200;
+			playerHealth.y = 590;
+			playerHealth.alpha = 0.5;
+			game.gui.addChild(playerHealth);
+			var playerHealthBar = new Sprite();
+			playerHealthBar.image = Textures.load("images/health.png");
+			playerHealthBar.width = 190;
+			playerHealthBar.height = 10;
+			playerHealthBar.offsetX = 5;//-playerHealthBar.width/2;
+			playerHealthBar.offsetY = 5;//-playerHealthBar.height/2;
+			playerHealth.addChild(playerHealthBar);
+			
+			var bears = new List();
+			var count = 0;
+			var newBearTime = 10;
+			game.updateState = function(delta){
+				if(player.health <= 0){
+					player.image = Textures.load("images/blood.png");
+					playerHealthBar.width = 0;
+					Sounds.play("sounds/beartality.ogg").volume = 0.5;
+					deadMenu.scoreText.text = game.score+" bears defeated";
+					//States.pop(game);
+					States.push(deadMenu);
+					//States.push(winMenu);
+				}else{
+					playerHealthBar.width = 190*(player.health/player.maxHealth);
+					scoreText.text = "Score: "+game.score;
+					game.time++;
+					var wave = Math.min(waves.length-1, Math.floor(game.time/game.waveTime));
+					//println(wave);
+					waves[wave].update(delta);
+					//waves[5].update();
+				}
+			}
+			
+			function newBear(x, y, fireRate, action){
+				var bear = new Bear(game);
+				bear.x = x;
+				bear.y = y;
+				bear.gun.rotation = DTR(90);
+				bear.gun.fireRate = fireRate;
+				bear.action = action;
+				bears.push(bear);
+				return bear;
+			}
+			
+			function newBearMotion(delta){
+				this.y += this.moveSpeed*delta;
+				this.x += Math.sin(this.moveRot)*1*delta;
+				this.moveRot += 0.1*delta;
+			}
+		</script>
+	</head>
+	<!--<body onload="initGame('canvas');" height="600" bgcolor="white" style="margin:0px; margin-top: 50px; padding:0px; color: white;">-->
+	<body height="600" bgcolor="black" style="margin:0px; margin-top: 50px; padding:0px; color: white;">
+		<center>
+		<canvas id="canvas" width="400" height="600" background="black" style="border: solid thin white; margin:0px; padding: 0px; color: white;">
+			<img src="images/bf1.png" />
+			<span style="font: white;">Your browser doesn't support HTML 5 Canvas.<br />
+			You should probably switch to something a little more forward thinking.</span>
+		</canvas>
+		<br />
+		Use the arrow keys to move and hold space to fire. Enter or escape will pause the game.<br />
+		Warning: The boss is OP.<br />
+		Music by <a style="color:#ff0000; text-decoration:none;" href="http://tettix.net">Tettix</a>
+		<br />
+		Not working? Try <a style="color:#ff0000; text-decoration:none;" href="" onclick="switchContext();" >this</a>.
+		</center>
+		<script language="javascript">
+			initGame('canvas');
+		</script>
+	</body>
+</html>

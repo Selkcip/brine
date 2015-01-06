@@ -1,0 +1,273 @@
+jsFiddle.net is a handy site that allows you to quickly prototype JavaScript applications and share them easily with anyone. The people you share your fiddles with can then fork and extend their functionality.
+
+Before you start you might want to create a free account so that all of the fiddles you make are collected in one place. However, you don't need to be logged in to create a fiddle.
+
+Note that this is not a guide to getting started with Brine, but how to set Brine up with jsFiddle. You can complete the example from Getting Started With Brine with jsFiddle, but this assumes you have already completed it with a text editor.
+
+When you create a new fiddle you get this page with your fiddle properties down the left side and four display panels on the right: HTML, CSS, JavaScript, and Result:
+
+jsFiddle gives you a number of options for built in JavaScript libraries, but you don't want any of those (at least not for now) so select No-Library (pure JS):
+
+Now switch to the Add Resources section. Paste http://www.jar42.com/brine/engine/brine.js into the text box and press the add button.
+
+=>
+
+Unfortunately jsFiddle doesn't allow you to change the order of resources without removing and re-adding them in the correct order. So when you are working with multiple external sources try to add them in the correct order the first time.
+
+For simplicity I'm just going to modify the example project from Getting Started With Brine. Here's the code from that example:
+
+<html>
+    <head>
+        <title>Brine Game</title>
+        
+        <script src="Brine.js"></script>
+        <script>
+            use2D = true;
+            
+            //Create a new Sprite
+            var mySprite = new Sprite();
+            
+            //Set its dimensions
+            mySprite.width = 256;
+            mySprite.height = 256;
+            
+            //Shift the sprite so that its origin is at its center
+            //The offset is negative because we are moving the sprite relative to its origin and not the origin relative to the sprite
+            mySprite.xoffset = -mySprite.width/2;
+            mySprite.yoffset = -mySprite.height/2;
+            
+            //Set the sprite's texture
+            mySprite.image = Textures.load("images/logo.png");
+            
+            //Add the sprite to the world
+            world.addChild(mySprite);
+            
+            //Override the default update function
+            //Define some variables to hold the sprite's x and y velocities
+            var xvel = 1;
+            var yvel = 1;
+            mySprite.update = function(d){
+                //Add the velocities to the sprite's position
+                this.x += xvel;
+                this.y += yvel;
+                
+                //If the sprite hits a boundary make it change direction
+                //If it hits the left edge
+                if(this.x < 0){
+                    //Reverse the x velocity
+                    xvel *= -1;
+            
+                    //Position the sprite so that it's back within the bounds
+                    this.x = 0;
+            
+                //If it hits the right edge
+                }else if(this.x > canvas.width){
+                    //Reverse the x velocity
+                    xvel *= -1;
+            
+                    //Position the sprite so that it's back within the bounds
+                    this.x = canvas.width;
+                }
+                
+                //If it hits the top edge (the top left corner of the canvas is 0,0)
+                if(this.y < 0){
+                    //Reverse the x velocity
+                    yvel *= -1;
+            
+                    //Position the sprite so that it's back within the bounds
+                    this.y = 0;
+            
+                //If it hits the bottom edge
+                }if(this.y > canvas.height){
+                    //Reverse the x velocity
+                    yvel *= -1;
+            
+                    //Position the sprite so that it's back within the bounds
+                    this.y = canvas.height;
+                }
+                
+                //Rotate the sprite by 5 degrees. DTR(degrees) converts degrees to radians
+                this.rotation += DTR(5);
+            }
+        </script>
+    </head>
+    <body onload="initGame('canvas');">
+        <canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+            You shouldn't see this.
+        </canvas>
+    </body>
+</html>
+
+To use this with jsFiddle you need to break it into the HTML and JavaScript components. The HTML portion is pretty easy. All you need is:
+
+<canvas id="canvas" width = "800" height = "600" style="border: solid black;">
+    You shouldn't see this.
+</canvas>
+
+Take that and type/paste it into the HTML panel:
+
+The JavaScript is the contents of the script tag:
+
+use2D = true;
+
+//Create a new Sprite
+var mySprite = new Sprite();
+
+//Set its dimensions
+mySprite.width = 256;
+mySprite.height = 256;
+
+//Shift the sprite so that its origin is at its center
+//The offset is negative because we are moving the sprite relative to its origin and not the origin relative to the sprite
+mySprite.xoffset = -mySprite.width/2;
+mySprite.yoffset = -mySprite.height/2;
+
+//Set the sprite's texture
+mySprite.image = Textures.load("images/logo.png");
+
+//Add the sprite to the world
+world.addChild(mySprite);
+
+//Override the default update function
+//Define some variables to hold the sprite's x and y velocities
+var xvel = 1;
+var yvel = 1;
+mySprite.update = function(d){
+    //Add the velocities to the sprite's position
+    this.x += xvel;
+    this.y += yvel;
+    
+    //If the sprite hits a boundary make it change direction
+    //If it hits the left edge
+    if(this.x < 0){
+        //Reverse the x velocity
+        xvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.x = 0;
+
+    //If it hits the right edge
+    }else if(this.x > canvas.width){
+        //Reverse the x velocity
+        xvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.x = canvas.width;
+    }
+    
+    //If it hits the top edge (the top left corner of the canvas is 0,0)
+    if(this.y < 0){
+        //Reverse the x velocity
+        yvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.y = 0;
+
+    //If it hits the bottom edge
+    }if(this.y > canvas.height){
+        //Reverse the x velocity
+        yvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.y = canvas.height;
+    }
+    
+    //Rotate the sprite by 5 degrees. DTR(degrees) converts degrees to radians
+    this.rotation += DTR(5);
+}
+
+
+Take that and type/paste it into the JavaScript panel:
+
+In the example Brine is initialized when the body of the HTML page finishes loading. Since you don't have that here you need to add the initialization at the end of the JavaScript:
+
+use2D = true;
+
+//Create a new Sprite
+var mySprite = new Sprite();
+
+//Set its dimensions
+mySprite.width = 256;
+mySprite.height = 256;
+
+//Shift the sprite so that its origin is at its center
+//The offset is negative because we are moving the sprite relative to its origin and not the origin relative to the sprite
+mySprite.xoffset = -mySprite.width/2;
+mySprite.yoffset = -mySprite.height/2;
+
+//Set the sprite's texture
+mySprite.image = Textures.load("images/logo.png");
+
+//Add the sprite to the world
+world.addChild(mySprite);
+
+//Override the default update function
+//Define some variables to hold the sprite's x and y velocities
+var xvel = 1;
+var yvel = 1;
+mySprite.update = function(d){
+    //Add the velocities to the sprite's position
+    this.x += xvel;
+    this.y += yvel;
+    
+    //If the sprite hits a boundary make it change direction
+    //If it hits the left edge
+    if(this.x < 0){
+        //Reverse the x velocity
+        xvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.x = 0;
+
+    //If it hits the right edge
+    }else if(this.x > canvas.width){
+        //Reverse the x velocity
+        xvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.x = canvas.width;
+    }
+    
+    //If it hits the top edge (the top left corner of the canvas is 0,0)
+    if(this.y < 0){
+        //Reverse the x velocity
+        yvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.y = 0;
+
+    //If it hits the bottom edge
+    }if(this.y > canvas.height){
+        //Reverse the x velocity
+        yvel *= -1;
+
+        //Position the sprite so that it's back within the bounds
+        this.y = canvas.height;
+    }
+    
+    //Rotate the sprite by 5 degrees. DTR(degrees) converts degrees to radians
+    this.rotation += DTR(5);
+}
+    
+initGame("canvas");
+
+Now when you press Run, this is what the Result panel should look like:
+
+What happened to the sprite? Originally you were running this locally on your computer and the image for your sprite was located in an images folder, but now that it's online it can't access that image. The solution to this is to use an image that is hosted somewhere on a web server. That's easy for me because I have my website, but most people don't have websites. What you do have is a folder called public_html in your user folder on the UCSC unix system. My folder, for example, is http://people.ucsc.edu/~elipschu/. To get to your folder, replace my username with yours.
+
+I don't want to get into setting up FTP transfers to your html folder in this post, but I will probably make another post that does since you will likely be using this folder for some of your projects.
+
+If you don't know how to put files in your public folder right now, just know that it exists. For now you can use the logo that I uploaded to my folder: http://people.ucsc.edu/~elipschu/images/logo.png:
+
+//Set the sprite's texture
+mySprite.image = Textures.load("http://people.ucsc.edu/~elipschu/images/logo.png");
+
+Now when you press Run, this is what the Result panel should look like:
+
+Here is a link to the fiddle I just made: http://jsfiddle.net/T2ayT/1/
+
+Make sure to save the URL of your fiddles if you haven't made an account or you risk not being able to find them later.
+
+As I said before, jsFiddle is good for prototyping your applications/games, but don't try and write your entire game in it as I can guarantee you'll regret it.
+
+#brine #example #how to #jsfiddle

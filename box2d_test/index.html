@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Brine With Box2D</title>
+
+		<script src="Box2d.js"></script>
+		<script src="brine.js"></script>
+		
+		<script>
+			//Sets the canvas color when clearing, set the last value to 0 if want a transparent canvas
+			clearColor = [1,1,1,1];
+			
+			use2D = true;
+			
+			//Ease of access to B2D classes
+			var	b2Vec2 = Box2D.Common.Math.b2Vec2
+				,	b2BodyDef = Box2D.Dynamics.b2BodyDef
+				,	b2Body = Box2D.Dynamics.b2Body
+				,	b2FixtureDef = Box2D.Dynamics.b2FixtureDef
+				,	b2Fixture = Box2D.Dynamics.b2Fixture
+				,	b2World = Box2D.Dynamics.b2World
+				,	b2MassData = Box2D.Collision.Shapes.b2MassData
+				,	b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape
+				,	b2CircleShape = Box2D.Collision.Shapes.b2CircleShape,
+					b2DebugDraw = Box2D.Dynamics.b2DebugDraw
+            ;
+            
+            //This will be out B2D world
+			var physics;
+			
+			//Load an image file
+			Textures.load("images/logo_filled.png");
+			
+			world.init = function(){
+				//Initialize the B2D world
+				physics = new b2World(new b2Vec2(0,10), true);
+				
+				//Apply helper function to sprites
+				applyBBoxToSprite(ground, b2Body.b2_staticBody);
+				//ground.body.SetAngle(DTR(22.5));
+				
+				applyBBoxToSprite(logo, b2Body.b2_dynamicBody);
+				logo.body.SetAngle(DTR(40));
+				
+				applyBBoxToSprite(logo2, b2Body.b2_dynamicBody);
+				
+				//This is useful to see what the physics simulation looks like behind the sprites
+				var debugDraw = new b2DebugDraw();
+				debugDraw.SetSprite(ctx);
+				debugDraw.SetDrawScale(100.0);
+				debugDraw.SetFillAlpha(0.3);
+				debugDraw.SetLineThickness(10.0);
+				debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
+				physics.SetDebugDraw(debugDraw);
+			}
+			
+			//Adds some boolean values to the global input
+			gInput.addBool(38, "up");
+			gInput.addBool(40, "down");
+			world.update = function(d){
+				//Do something with those booleans
+				if(gInput.up){
+				}
+				if(gInput.down){
+				}
+				
+				physics.Step(1/60, 10, 10);
+				physics.ClearForces();
+				
+				//this.__proto__.update.call(this, d);
+				this.updateChildren(d);
+			}
+			
+			world.draw = function(ctx){
+				//Draw the B2D debug
+				physics.DrawDebugData();
+				
+				//Set the alpha to half so we can see the debug drawing
+				this.alpha = 0.5;
+				//Call the default draw
+				Sprite.prototype.draw.call(this,ctx);
+			}
+			
+			//This helper functions attaches a physics body/fixture pair to the sprite
+			//You will probably need something more complex
+			//I don't want to see this in your final game
+			function applyBBoxToSprite(sprite, type){
+				var fixDef = new b2FixtureDef;
+				fixDef.density = 1.0;
+				fixDef.friction = 0.5;
+				fixDef.restitution = 0.2;
+				fixDef.shape = new b2PolygonShape;
+
+				var bodyDef = new b2BodyDef;
+				
+				bodyDef.type = type;
+				bodyDef.position.x = sprite.x/100;
+				bodyDef.position.y = sprite.y/100;
+				fixDef.shape.SetAsBox(sprite.width/200, sprite.height/200);
+				//fixDef.shape.SetAsCircle()
+				sprite.body = physics.CreateBody(bodyDef);
+				sprite.fix = sprite.body.CreateFixture(fixDef);
+				
+				//This update will need to be more complex as well assuming you want sprites to control themselves in some way
+				sprite.update = function(d){
+					var pos = this.body.GetPosition();
+					this.x = pos.x*100;
+					this.y = pos.y*100;
+					this.rotation = this.body.GetAngle();
+				}
+			}
+			
+			//Make some sprites
+			var ground = new Sprite();
+			ground.width = 800;
+			ground.height = 100;
+			ground.offsetX = -ground.width/2;
+			ground.offsetY = -ground.height/2;
+			ground.y = 500;
+			ground.x = 400;
+			ground.image = Textures.load("images/trash.png");
+			world.addChild(ground);
+			
+			var logo = new Sprite();
+			logo.width = 100;
+			logo.height = 100;
+			logo.offsetX = -logo.width/2;
+			logo.offsetY = -logo.height/2;
+			logo.x = 300;
+			logo.y = 300;
+			logo.image = Textures.load("images/trash.png");
+			world.addChild(logo);
+			
+			var logo2 = new Sprite();
+			logo2.width = 100;
+			logo2.height = 100;
+			logo2.offsetX = -logo.width/2;
+			logo2.offsetY = -logo.height/2;
+			logo2.x = 300;
+			logo2.y = 0;
+			logo2.image = Textures.load("images/trash.png");
+			world.addChild(logo2);
+			//logo.x = 100;
+		</script>
+	</head>
+	<body onload="initGame('canvas');" height="600" bgcolor="black" style="margin:0px; margin-top: 50px; padding:0px; color: white;">
+		<center>
+		<canvas id="canvas" width="800" height="600" style="border: solid black; margin:0px; padding: 0px; color: white;">
+			<span style="font: white;">Your browser doesn't support HTML 5 Canvas.<br />
+			You should probably switch to something a little more forward thinking.</span>
+		</canvas>
+		<br />
+		Not working? Try <a style="color:#ff0000; text-decoration:none;" href="" onclick="switchContext();" >this</a>.
+		</center>
+	</body>
+</html>
